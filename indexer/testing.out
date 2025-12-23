@@ -1,0 +1,215 @@
+bash -v testing.sh
+module () {  local _mlredir=1;
+ if [ -n "${MODULES_REDIRECT_OUTPUT+x}" ]; then
+ if [ "$MODULES_REDIRECT_OUTPUT" = '0' ]; then
+ _mlredir=0;
+ else
+ if [ "$MODULES_REDIRECT_OUTPUT" = '1' ]; then
+ _mlredir=1;
+ fi;
+ fi;
+ fi;
+ case " $@ " in 
+ *' --no-redirect '*)
+ _mlredir=0
+ ;;
+ *' --redirect '*)
+ _mlredir=1
+ ;;
+ esac;
+ if [ $_mlredir -eq 0 ]; then
+ _module_raw "$@";
+ else
+ _module_raw "$@" 2>&1;
+ fi
+}
+ml () {  module ml "$@"
+}
+_module_raw () {  eval "$(/usr/bin/tclsh8.6 '/usr/lib/x86_64-linux-gnu/modulecmd.tcl' bash "$@")";
+ _mlstatus=$?;
+ return $_mlstatus
+}
+#!/bin/bash
+
+# testing.sh - Testing script for the Indexer and Indextest programs
+#
+# Author: Atziri Enriquez
+# Date: 02/19/25
+#
+# Description:
+# This script performs automated testing for the Tiny Search Engine's Indexer and Indextest
+# programs. It verifies that the indexer correctly generates index files from a given
+# page directory and that indextest accurately loads and writes back index files while
+# maintaining data integrity.
+#
+# The script runs:
+# - **Valid Tests:** Executes indexer on multiple datasets, checks index file consistency
+#   using indextest, and compares outputs with indexcmp, no output means success in copying one index file to another.
+# - **Edge Cases:** Tests small and large datasets.
+# - **Invalid Argument Tests:** Ensures indexer and indextest handle incorrect inputs
+#   (missing arguments, extra arguments, invalid paths, etc.).
+# - **Special Cases:**
+#   - Running indexer on a valid non-crawler directory (should fail).
+#   - Running indexer on an empty crawler directory (should handle gracefully).
+# - **Memory Leak Testing:** Uses Valgrind to check for memory leaks in both indexer
+#   and indextest.
+
+TESTDIR="../data"
+SHAREDDIR="../../shared/tse/output"
+INDEXCMP="$HOME/cs50-dev/shared/tse/indexcmp"
+VALGRIND_LOG="$TESTDIR/valgrind.log"
+
+mkdir -p $TESTDIR
+# ------------------------------------
+# 1. Valid Indexer and Indextest Tests
+# ------------------------------------
+
+echo "Running indexer on $SHAREDDIR/letters-2..."
+Running indexer on ../../shared/tse/output/letters-2...
+./indexer $SHAREDDIR/letters-2 $TESTDIR/letters-2.index
+
+echo "Running indextest on $TESTDIR/letters-2.index..."
+Running indextest on ../data/letters-2.index...
+./indextest $TESTDIR/letters-2.index $TESTDIR/new-letters-2.index
+
+echo "Comparing index files with indexcmp..."
+Comparing index files with indexcmp...
+$INDEXCMP $TESTDIR/letters-2.index $TESTDIR/new-letters-2.index
+
+echo "Running indexer on $SHAREDDIR/letters-3..."
+Running indexer on ../../shared/tse/output/letters-3...
+./indexer $SHAREDDIR/letters-3 $TESTDIR/letters-3.index
+
+echo "Running indextest on $TESTDIR/letters-3.index..."
+Running indextest on ../data/letters-3.index...
+./indextest $TESTDIR/letters-3.index $TESTDIR/new-letters-3.index
+
+echo "Comparing index files with indexcmp..."
+Comparing index files with indexcmp...
+$INDEXCMP $TESTDIR/letters-3.index $TESTDIR/new-letters-3.index
+
+# ------------------------------------
+# 2. Invalid Argument Tests
+# ------------------------------------
+
+echo "TEST 1: No arguments (should fail)"
+TEST 1: No arguments (should fail)
+./indexer
+Usage: ./indexer pageDirectory indexFilename
+
+echo "TEST 2: One argument (should fail)"
+TEST 2: One argument (should fail)
+./indexer onlyonearg
+Usage: ./indexer pageDirectory indexFilename
+
+echo "TEST 3: Three or more arguments (should fail)"
+TEST 3: Three or more arguments (should fail)
+./indexer arg1 arg2 arg3
+Usage: ./indexer pageDirectory indexFilename
+
+# ------------------------------------
+# 3. Invalid pageDirectory (Non-existent path)
+# ------------------------------------
+
+echo "TEST 4: Invalid pageDirectory (non-existent path, should fail)"
+TEST 4: Invalid pageDirectory (non-existent path, should fail)
+./indexer /invalid/path $TESTDIR/bad.index
+Error: Invalid page directory '/invalid/path'.
+
+# ------------------------------------
+# 4. Invalid pageDirectory (Existing but NOT a crawler directory)
+# ------------------------------------
+
+mkdir -p $TESTDIR/notcrawler
+echo "TEST 5: Valid directory but NOT a crawler directory (should fail)"
+TEST 5: Valid directory but NOT a crawler directory (should fail)
+./indexer $TESTDIR/notcrawler $TESTDIR/bad.index
+Error: Invalid page directory '../data/notcrawler'.
+
+# ------------------------------------
+# 5. Invalid indexFile (Non-existent path)
+# ------------------------------------
+
+echo "TEST 6: Invalid indexFile (non-existent path, should fail)"
+TEST 6: Invalid indexFile (non-existent path, should fail)
+./indexer $SHAREDDIR/letters-2 /invalid/path/bad.index
+Error: Index file '/invalid/path/bad.index' could not be written to. Check if it exists, is readable, or if the directory is writable.
+
+# ------------------------------------
+# 6. Invalid indexFile (Read-only directory)
+# ------------------------------------
+
+mkdir -p $TESTDIR/readonly-dir
+chmod 555 $TESTDIR/readonly-dir  # Set directory as read-only
+
+echo "TEST 7: Index file in a read-only directory (should fail)"
+TEST 7: Index file in a read-only directory (should fail)
+./indexer $SHAREDDIR/letters-2 $TESTDIR/readonly-dir/bad.index
+Error: Index file '../data/readonly-dir/bad.index' could not be written to. Check if it exists, is readable, or if the directory is writable.
+
+# ------------------------------------
+# 7. Invalid indexFile (Existing, read-only file)
+# ------------------------------------
+
+touch $TESTDIR/readonly.index
+chmod 444 $TESTDIR/readonly.index  # Make the file read-only
+
+echo "TEST 8: Existing, read-only index file (should fail)"
+TEST 8: Existing, read-only index file (should fail)
+./indexer $SHAREDDIR/letters-2 $TESTDIR/readonly.index
+Error: Index file '../data/readonly.index' could not be written to. Check if it exists, is readable, or if the directory is writable.
+
+chmod 644 $TESTDIR/readonly.index  # Restore file permissions after test
+
+# ------------------------------------
+# Extra Edge Cases
+# ------------------------------------
+
+mkdir -p $TESTDIR/empty-crawler
+touch $TESTDIR/empty-crawler/.crawler
+echo "TEST 9: Indexer on an empty crawler directory (should handle gracefully)"
+TEST 9: Indexer on an empty crawler directory (should handle gracefully)
+./indexer $TESTDIR/empty-crawler $TESTDIR/empty.index
+
+# ------------------------------------
+# Run Valgrind Memory Leak Tests
+# ------------------------------------
+
+echo "Running Valgrind on indexer..."
+Running Valgrind on indexer...
+valgrind --leak-check=full --show-leak-kinds=all ./indexer $SHAREDDIR/toscrape-1 $TESTDIR/toscrape-1.index
+==2291185== Memcheck, a memory error detector
+==2291185== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==2291185== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==2291185== Command: ./indexer ../../shared/tse/output/toscrape-1 ../data/toscrape-1.index
+==2291185== 
+==2291185== 
+==2291185== HEAP SUMMARY:
+==2291185==     in use at exit: 0 bytes in 0 blocks
+==2291185==   total heap usage: 2,403,103 allocs, 2,403,103 frees, 44,059,937,759 bytes allocated
+==2291185== 
+==2291185== All heap blocks were freed -- no leaks are possible
+==2291185== 
+==2291185== For lists of detected and suppressed errors, rerun with: -s
+==2291185== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+echo "Running Valgrind on indextest..."
+Running Valgrind on indextest...
+valgrind --leak-check=full --show-leak-kinds=all ./indextest $TESTDIR/toscrape-1.index $TESTDIR/new-toscrape-1.index
+==2291195== Memcheck, a memory error detector
+==2291195== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==2291195== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==2291195== Command: ./indextest ../data/toscrape-1.index ../data/new-toscrape-1.index
+==2291195== 
+==2291195== 
+==2291195== HEAP SUMMARY:
+==2291195==     in use at exit: 0 bytes in 0 blocks
+==2291195==   total heap usage: 17,161 allocs, 17,161 frees, 272,235 bytes allocated
+==2291195== 
+==2291195== All heap blocks were freed -- no leaks are possible
+==2291195== 
+==2291195== For lists of detected and suppressed errors, rerun with: -s
+==2291195== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+echo "All tests completed!"
+All tests completed!
