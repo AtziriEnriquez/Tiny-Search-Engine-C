@@ -4,16 +4,6 @@
 
 ### Atziri Enriquez (Github User: AtziriEnriquez)
 
-### Late Day Usage
-
-Original due date: Thursday
-
-Extended deadline (by professor): Friday night
-
-Using one late day: New submission deadline is Saturday
-
-I am using one of my allowed late days for this assignment, making my final submission on Saturday.
-
 ### Assumptions
 
 **1. Adherence to the Requirements Spec**
