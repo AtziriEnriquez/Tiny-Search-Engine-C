@@ -1,6 +1,4 @@
 # Makefile for CS50 Tiny Search Engine
-#
-# David Kotz - April 2016, 2017, 2021
 
 L = libcs50
 .PHONY: all clean
