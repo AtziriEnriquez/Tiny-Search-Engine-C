@@ -1,6 +1,6 @@
-# Makefile for crawler module in CS50 Tiny Search Engine
+# Makefile for crawler module in Tiny Search Engine
 #
-# Atziri Enriquez - 02/12/25
+# Atziri Enriquez
 
 # Compiler and flags
 CC = gcc
