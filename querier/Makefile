@@ -1,6 +1,6 @@
-# Makefile for querier module in CS50 Tiny Search Engine
+# Makefile for querier module in Tiny Search Engine
 #
-# Atziri Enriquez - 03/1/2025
+# Atziri Enriquez
 
 # Compiler and flags
 CC = gcc
