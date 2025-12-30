@@ -1,6 +1,6 @@
-# Makefile for indexer module in CS50 Tiny Search Engine
+# Makefile for indexer module in Tiny Search Engine
 #
-# Atziri Enriquez - 02/19/25
+# Atziri Enriquez
 
 # Compiler
 CC = gcc
