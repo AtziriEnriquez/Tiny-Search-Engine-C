@@ -1,7 +1,5 @@
 # CS50 Tiny Search Engine (TSE) utility library
 
-These modules support the TSE project.  Feel free to drop in your implementation of the data-structure modules, but **do not change any of the other source files in this directory.**
-
 ## Usage
 
 To build `libcs50.a`, run `make`. 
