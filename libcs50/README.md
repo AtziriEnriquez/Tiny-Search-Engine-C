@@ -4,8 +4,7 @@
 
 To build `libcs50.a`, run `make`. 
 
-The starter kit includes a pre-built library, `libcs50-given.a`, in case you prefer to use our Lab3 solutions rather than your own.
-If you prefer our data-structure implementation over your own, update the Makefile rule for `$(LIB)`, as instructed by comments there.
+The starter kit includes a pre-built library, `libcs50-given.a`
 
 To clean up, run `make clean`.
 
