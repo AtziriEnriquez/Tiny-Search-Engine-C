@@ -18,7 +18,6 @@ A modular C-based search engine consisting of a **web crawler**, **inverted inde
 ## Project Structure
 
 ```text
-.
 ├── common/     # shared helpers/utilities
 ├── crawler/    # crawl seed URL -> page directory
 ├── indexer/    # build inverted index from crawled pages
@@ -42,32 +41,17 @@ make clean
 ## Usage (Quickstart)
 1) Crawl pages
 ```bash
-./crawler/crawler <seedURL> <pageDirectory> <maxDepth>
-```
-
-Example:
-```bash
-./crawler/crawler http://example.com data/ 2
+./crawler <seedURL> <pageDirectory> <maxDepth>
 ```
 
 2) Build an index from crawled pages
 ```bash
-./indexer/indexer <pageDirectory> <indexFilename>
-```
-
-Example:
-```bash
-./indexer/indexer data/ index.dat
+./indexer <pageDirectory> <indexFilename>
 ```
 
 3) Query the index
 ```bash
-./querier/querier <pageDirectory> <indexFilename>
-```
-
-Example:
-```bash
-./querier/querier data/ index.dat
+./querier <pageDirectory> <indexFilename>
 ```
 
 ## Testing & Memory Checks
@@ -78,5 +62,5 @@ make test
 
 Run Valgrind (example pattern):
 ```bash
-valgrind --leak-check=full --show-leak-kinds=all ./indexer/indexer data/ index.dat
+valgrind --leak-check=full --show-leak-kinds=all ./indexer...
 ```
